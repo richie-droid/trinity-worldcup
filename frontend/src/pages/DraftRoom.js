@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { getFlag, POT_COLORS } from '../services/api';
+import { api, getFlag, POT_COLORS } from '../services/api';
 
 const GROUPS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
 
@@ -144,9 +144,20 @@ export default function DraftRoom() {
                       className="btn-primary"
                       onClick={startDraft}
                       disabled={users.length < 2}
-                      style={{ width: '100%' }}
+                      style={{ width: '100%', marginBottom: 8 }}
                     >
                       Start Draft
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      style={{ width: '100%', fontSize: 12, color: '#e63946', borderColor: 'rgba(230,57,70,0.3)' }}
+                      onClick={async () => {
+                        if (!window.confirm('Reset everything? This clears all users, picks, and points.')) return;
+                        await api.resetDraft(user.id);
+                        window.location.href = '/';
+                      }}
+                    >
+                      Reset Draft
                     </button>
                   </>
                 ) : (

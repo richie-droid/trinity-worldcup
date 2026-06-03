@@ -41,4 +41,27 @@ router.get('/:id', async (req, res) => {
   res.json(user);
 });
 
+// Reset everything — commissioner only
+router.post('/reset', async (req, res) => {
+  const { userId } = req.body;
+  const client = await pool.connect();
+  try {
+    const { rows: [user] } = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (!user?.is_commissioner) return res.status(403).json({ error: 'Commissioner only' });
+
+    await client.query('DELETE FROM points_log');
+    await client.query('DELETE FROM draft_picks');
+    await client.query('DELETE FROM users');
+    await client.query(`
+      UPDATE draft_state SET
+        status = 'waiting', current_pick = 1, total_picks = 0,
+        started_at = NULL, completed_at = NULL, draft_order = '[]'
+      WHERE id = 1
+    `);
+    res.json({ ok: true });
+  } finally {
+    client.release();
+  }
+});
+
 module.exports = router;

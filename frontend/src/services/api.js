@@ -22,6 +22,7 @@ export const api = {
   getUpcoming: () => get('/scoreboard/upcoming'),
   getUserPoints: (userId) => get(`/scoreboard/points/${userId}`),
   syncScores: () => post('/scoreboard/sync', {}),
+  resetDraft: (userId) => post('/users/reset', { userId }),
 };
 
 // Country code to flag emoji mapping
