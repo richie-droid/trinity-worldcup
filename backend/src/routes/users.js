@@ -1,0 +1,44 @@
+const express = require('express');
+const router = express.Router();
+const { pool } = require('../db');
+
+// Sign up / create user
+router.post('/', async (req, res) => {
+  const { name, emoji } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: 'Name required' });
+
+  const client = await pool.connect();
+  try {
+    // First user becomes commissioner
+    const { rows: existing } = await client.query('SELECT COUNT(*) FROM users');
+    const isFirst = parseInt(existing[0].count) === 0;
+
+    const { rows: [user] } = await client.query(`
+      INSERT INTO users (name, emoji, is_commissioner)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `, [name.trim(), emoji || '⚽', isFirst]);
+
+    res.json(user);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Name taken' });
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Get all users
+router.get('/', async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM users ORDER BY created_at ASC');
+  res.json(rows);
+});
+
+// Get user by id
+router.get('/:id', async (req, res) => {
+  const { rows: [user] } = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
+  if (!user) return res.status(404).json({ error: 'Not found' });
+  res.json(user);
+});
+
+module.exports = router;
