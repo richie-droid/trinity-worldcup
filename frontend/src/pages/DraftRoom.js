@@ -74,12 +74,20 @@ export default function DraftRoom() {
   // My teams
   const myPicks = picks.filter(p => p.user_id === user?.id);
 
-  // Filter available teams
-  const filtered = availableTeams.filter(t => {
-    if (filter !== 'all' && t.group_name !== filter) return false;
-    if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  // Parse odds string to numeric value for sorting (+350 → 350, null → Infinity)
+  const parseOdds = (odds) => {
+    if (!odds) return Infinity;
+    return parseInt(odds.replace('+', '').replace('-', ''), 10);
+  };
+
+  // Filter and sort available teams by odds (best → worst)
+  const filtered = availableTeams
+    .filter(t => {
+      if (filter !== 'all' && t.group_name !== filter) return false;
+      if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    })
+    .sort((a, b) => parseOdds(a.odds) - parseOdds(b.odds));
 
   const makePick = (teamId) => {
     if (!isMyTurn || !isDraftActive) return;
@@ -198,9 +206,22 @@ export default function DraftRoom() {
               <>
                 <div className="badge badge-gold" style={{ marginBottom: 12 }}>Draft Complete!</div>
                 <p style={styles.sidebarText}>All 48 teams have been drafted.</p>
-                <button className="btn-primary" onClick={() => navigate('/scoreboard')} style={{ width: '100%', marginTop: 12 }}>
+                <button className="btn-primary" onClick={() => navigate('/scoreboard')} style={{ width: '100%', marginTop: 12, marginBottom: 8 }}>
                   View Scoreboard →
                 </button>
+                {isCommissioner && (
+                  <button
+                    className="btn-secondary"
+                    style={{ width: '100%', fontSize: 12, color: '#e63946', borderColor: 'rgba(230,57,70,0.3)' }}
+                    onClick={async () => {
+                      if (!window.confirm('Reset everything? This clears all users, picks, and points.')) return;
+                      await api.resetDraft(user.id);
+                      window.location.href = '/';
+                    }}
+                  >
+                    Reset Draft
+                  </button>
+                )}
               </>
             )}
           </div>
