@@ -6,7 +6,7 @@ const POINTS = {
   quarterfinal: { win: 6 },
   semifinal: { win: 8 },
   third_place: { win: 6 },
-  final: { win: 12 },
+  final: { win: 8 },
 };
 
 const getRound = (match) => {

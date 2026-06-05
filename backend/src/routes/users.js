@@ -55,7 +55,7 @@ router.post('/reset', async (req, res) => {
     await client.query(`
       UPDATE draft_state SET
         status = 'waiting', current_pick = 1, total_picks = 0,
-        started_at = NULL, completed_at = NULL, draft_order = '[]'
+        started_at = NULL, completed_at = NULL, draft_order = '[]', pending_order = '[]'
       WHERE id = 1
     `);
     res.json({ ok: true });

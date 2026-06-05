@@ -84,6 +84,23 @@ const setupWebSocket = (server) => {
             break;
           }
 
+          case 'shuffle_order': {
+            const { rows: [stateCheck] } = await client.query('SELECT * FROM draft_state WHERE id = 1');
+            if (stateCheck.status !== 'waiting') break;
+            const { rows: [commCheck] } = await client.query('SELECT * FROM users WHERE id = $1', [msg.userId]);
+            if (!commCheck?.is_commissioner) break;
+
+            const { rows: allUsers } = await client.query('SELECT id FROM users ORDER BY created_at ASC');
+            const shuffled = allUsers.map(u => u.id).sort(() => Math.random() - 0.5);
+            await client.query(
+              'UPDATE draft_state SET pending_order = $1 WHERE id = 1',
+              [JSON.stringify(shuffled)]
+            );
+            const draftData = await getDraftState();
+            broadcastAll({ type: 'order_shuffled', pendingOrder: shuffled, ...draftData });
+            break;
+          }
+
           case 'start_draft': {
             const { rows: [state] } = await client.query('SELECT * FROM draft_state WHERE id = 1');
             if (state.status !== 'waiting') break;
@@ -101,7 +118,9 @@ const setupWebSocket = (server) => {
               break;
             }
 
-            const draftOrder = users.map(u => u.id);
+            // Use shuffled order if set, otherwise join order
+            const pendingOrder = state.pending_order?.length > 0 ? state.pending_order : null;
+            const draftOrder = pendingOrder || users.map(u => u.id);
             const totalPicks = 48; // All 48 teams
 
             await client.query(`

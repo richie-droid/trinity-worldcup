@@ -79,6 +79,7 @@ const initDB = async () => {
 
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS fifa_rank INTEGER;
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS odds VARCHAR(15);
+      ALTER TABLE draft_state ADD COLUMN IF NOT EXISTS pending_order JSONB DEFAULT '[]';
     `);
     console.log('Database initialized');
   } finally {

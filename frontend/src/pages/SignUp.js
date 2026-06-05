@@ -109,7 +109,7 @@ export default function SignUp() {
               ['Group Win', '2 pts'], ['Group Draw', '1 pt'],
               ['Round of 32', '3 pts'], ['Round of 16', '4 pts'],
               ['Quarterfinal', '6 pts'], ['Semifinal', '8 pts'],
-              ['3rd Place', '6 pts'], ['Win Final', '12 pts'],
+              ['3rd Place', '6 pts'], ['Win Final', '8 pts'],
             ].map(([label, pts]) => (
               <div key={label} style={styles.scoringItem}>
                 <span style={styles.scoringLabel}>{label}</span>

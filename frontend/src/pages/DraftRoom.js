@@ -98,6 +98,10 @@ export default function DraftRoom() {
     send({ type: 'start_draft', userId: user.id });
   };
 
+  const shuffleOrder = () => {
+    send({ type: 'shuffle_order', userId: user.id });
+  };
+
   const teamsPerUser = draftOrder.length > 0
     ? Math.floor(48 / draftOrder.length)
     : 0;
@@ -143,11 +147,40 @@ export default function DraftRoom() {
                   {users.length} player{users.length !== 1 ? 's' : ''} joined
                   {teamsPerUser > 0 ? ` · ${teamsPerUser} teams each` : ''}
                 </p>
+                {/* Draft order preview */}
+                {users.length > 0 && (
+                  <div style={styles.orderPreview}>
+                    <div style={styles.orderTitle}>Pick Order</div>
+                    {(() => {
+                      const pendingOrder = state?.pending_order || [];
+                      const orderedUsers = pendingOrder.length > 0
+                        ? pendingOrder.map(id => users.find(u => u.id === id)).filter(Boolean)
+                        : users;
+                      return orderedUsers.map((u, i) => (
+                        <div key={u.id} style={styles.orderRow}>
+                          <span style={styles.orderNum}>{i + 1}</span>
+                          <span style={styles.orderEmoji}>{u.emoji}</span>
+                          <span style={{ fontSize: 12, fontWeight: u.id === user?.id ? 700 : 400 }}>{u.name}</span>
+                          {u.id === user?.id && <span style={{ fontSize: 10, color: 'rgba(248,248,242,0.4)' }}>(you)</span>}
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
+
                 {isCommissioner ? (
                   <>
-                    <p style={{ ...styles.sidebarText, marginBottom: 12, color: 'rgba(248,248,242,0.5)', fontSize: 12 }}>
+                    <p style={{ ...styles.sidebarText, marginBottom: 8, color: 'rgba(248,248,242,0.5)', fontSize: 12 }}>
                       You're the commissioner. Start when everyone's joined.
                     </p>
+                    <button
+                      className="btn-secondary"
+                      onClick={shuffleOrder}
+                      disabled={users.length < 2}
+                      style={{ width: '100%', marginBottom: 8, fontSize: 13 }}
+                    >
+                      🔀 Randomize Order
+                    </button>
                     <button
                       className="btn-primary"
                       onClick={startDraft}
@@ -420,6 +453,11 @@ const styles = {
   progressFill: { height: '100%', background: '#f5c518', borderRadius: 2, transition: 'width 0.5s ease' },
   yourTurn: { background: 'rgba(245,197,24,0.15)', border: '1px solid rgba(245,197,24,0.3)', borderRadius: 8, padding: '10px 12px', fontSize: 13, fontWeight: 600, color: '#f5c518' },
   waitingTurn: { background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '10px 12px', fontSize: 13, color: 'rgba(248,248,242,0.5)' },
+  orderPreview: { marginBottom: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' },
+  orderTitle: { fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(248,248,242,0.35)', marginBottom: 8 },
+  orderRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0' },
+  orderNum: { fontFamily: 'DM Mono, monospace', fontSize: 11, color: 'rgba(248,248,242,0.3)', width: 16 },
+  orderEmoji: { fontSize: 16, width: 20, textAlign: 'center' },
   myTeamsList: { display: 'flex', flexDirection: 'column', gap: 8 },
   myTeamItem: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' },
   potBadge: { fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, fontFamily: 'DM Mono, monospace' },
