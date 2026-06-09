@@ -57,6 +57,20 @@ router.post('/:id/claim-commissioner', async (req, res) => {
   }
 });
 
+// Delete a user — commissioner only
+router.delete('/:id', async (req, res) => {
+  const { commissionerId } = req.body;
+  const client = await pool.connect();
+  try {
+    const { rows: [comm] } = await client.query('SELECT * FROM users WHERE id = $1', [commissionerId]);
+    if (!comm?.is_commissioner) return res.status(403).json({ error: 'Commissioner only' });
+    await client.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } finally {
+    client.release();
+  }
+});
+
 // Reset everything — commissioner only
 router.post('/reset', async (req, res) => {
   const { userId } = req.body;
