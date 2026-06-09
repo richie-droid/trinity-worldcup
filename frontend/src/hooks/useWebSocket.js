@@ -28,7 +28,7 @@ export const useWebSocket = (userId) => {
         const msg = JSON.parse(e.data);
         setLastEvent(msg);
 
-        if (['draft_state', 'draft_started', 'pick_made', 'draft_resumed'].includes(msg.type)) {
+        if (['draft_state', 'draft_started', 'pick_made', 'draft_resumed', 'order_shuffled'].includes(msg.type)) {
           setDraftState(msg);
         }
       } catch (err) {
@@ -57,6 +57,8 @@ export const useWebSocket = (userId) => {
   const send = useCallback((data) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(data));
+    } else {
+      console.warn('WebSocket not open, readyState:', ws.current?.readyState);
     }
   }, []);
 

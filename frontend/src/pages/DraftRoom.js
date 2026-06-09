@@ -43,6 +43,10 @@ export default function DraftRoom() {
     if (lastEvent.type === 'draft_started') {
       setFeed([{ id: Date.now(), text: '🚀 Draft has started!', isMe: false }]);
     }
+    if (lastEvent.type === 'error') {
+      setNotification(`❌ ${lastEvent.message}`);
+      setTimeout(() => setNotification(null), 5000);
+    }
   }, [lastEvent, user?.id]);
 
   if (!draftState) {
