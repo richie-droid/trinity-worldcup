@@ -28,7 +28,7 @@ export const useWebSocket = (userId) => {
         const msg = JSON.parse(e.data);
         setLastEvent(msg);
 
-        if (['draft_state', 'draft_started', 'pick_made', 'draft_resumed', 'order_shuffled'].includes(msg.type)) {
+        if (['draft_state', 'draft_started', 'pick_made', 'draft_resumed', 'order_shuffled', 'draft_ended'].includes(msg.type)) {
           setDraftState(msg);
         }
       } catch (err) {

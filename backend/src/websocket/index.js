@@ -192,6 +192,17 @@ const setupWebSocket = (server) => {
             break;
           }
 
+          case 'end_draft': {
+            const { rows: [commUser] } = await client.query('SELECT * FROM users WHERE id = $1', [msg.userId]);
+            if (!commUser?.is_commissioner) break;
+            await client.query(`
+              UPDATE draft_state SET status = 'completed', completed_at = NOW() WHERE id = 1
+            `);
+            const draftData = await getDraftState();
+            broadcastAll({ type: 'draft_ended', ...draftData });
+            break;
+          }
+
           case 'pause_draft': {
             const { rows: [user] } = await client.query('SELECT * FROM users WHERE id = $1', [msg.userId]);
             if (!user?.is_commissioner) break;

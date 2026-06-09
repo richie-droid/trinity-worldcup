@@ -93,9 +93,12 @@ export default function DraftRoom() {
     })
     .sort((a, b) => parseOdds(a.odds) - parseOdds(b.odds));
 
+  const canPick = isDraftActive && (isMyTurn || isCommissioner);
+
   const makePick = (teamId) => {
-    if (!isMyTurn || !isDraftActive) return;
-    send({ type: 'make_pick', userId: user.id, teamId });
+    if (!canPick) return;
+    const pickingAs = isMyTurn ? user.id : currentPickerId;
+    send({ type: 'make_pick', userId: pickingAs, teamId });
   };
 
   const startDraft = () => {
@@ -104,6 +107,11 @@ export default function DraftRoom() {
 
   const shuffleOrder = () => {
     send({ type: 'shuffle_order', userId: user.id });
+  };
+
+  const endDraft = () => {
+    if (!window.confirm('End the draft early? This marks it as complete.')) return;
+    send({ type: 'end_draft', userId: user.id });
   };
 
   const teamsPerUser = draftOrder.length > 0
@@ -253,6 +261,20 @@ export default function DraftRoom() {
                 <p style={{ fontSize: 11, color: 'rgba(248,248,242,0.4)', marginTop: 8 }}>
                   Round {roundIndex + 1} · {isReversed ? 'Reversed' : 'Forward'} order
                 </p>
+                {isCommissioner && !isMyTurn && (
+                  <div style={{ marginTop: 8, padding: '8px 10px', background: 'rgba(245,197,24,0.08)', borderRadius: 8, fontSize: 12, color: 'rgba(245,197,24,0.8)' }}>
+                    👑 Pick a team to pick on behalf of {currentPicker?.name}
+                  </div>
+                )}
+                {isCommissioner && (
+                  <button
+                    className="btn-secondary"
+                    onClick={endDraft}
+                    style={{ width: '100%', marginTop: 12, fontSize: 12, color: '#e63946', borderColor: 'rgba(230,57,70,0.3)' }}
+                  >
+                    End Draft Early
+                  </button>
+                )}
               </>
             )}
 
@@ -304,22 +326,31 @@ export default function DraftRoom() {
           {/* Participants */}
           <div className="card" style={{ marginBottom: 16 }}>
             <h4 style={styles.sidebarHeading}>Players ({users.length})</h4>
-            {users.map((u, i) => {
-              const userPicks = picks.filter(p => p.user_id === u.id);
-              const isCurrentPicker = u.id === currentPickerId && isDraftActive;
-              return (
-                <div key={u.id} style={{ ...styles.playerRow, ...(isCurrentPicker ? styles.playerRowActive : {}) }}>
-                  <span style={styles.playerEmoji}>{u.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: u.id === user?.id ? 700 : 400 }}>
-                      {u.name} {u.id === user?.id ? '(you)' : ''} {u.is_commissioner ? '👑' : ''}
+            {(() => {
+              const pendingOrder = state?.pending_order || [];
+              const ordered = (isDraftActive || isDraftDone)
+                ? draftOrder.map(id => users.find(u => u.id === id)).filter(Boolean)
+                : pendingOrder.length > 0
+                  ? pendingOrder.map(id => users.find(u => u.id === id)).filter(Boolean)
+                  : users;
+              return ordered.map((u, i) => {
+                const userPicks = picks.filter(p => p.user_id === u.id);
+                const isCurrentPicker = u.id === currentPickerId && isDraftActive;
+                return (
+                  <div key={u.id} style={{ ...styles.playerRow, ...(isCurrentPicker ? styles.playerRowActive : {}) }}>
+                    <span style={{ ...styles.orderNum, width: 20, color: isCurrentPicker ? '#f5c518' : 'rgba(248,248,242,0.3)' }}>{i + 1}</span>
+                    <span style={styles.playerEmoji}>{u.emoji}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: u.id === user?.id ? 700 : 400 }}>
+                        {u.name} {u.id === user?.id ? '(you)' : ''} {u.is_commissioner ? '👑' : ''}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'rgba(248,248,242,0.4)' }}>{userPicks.length} teams picked</div>
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(248,248,242,0.4)' }}>{userPicks.length} teams picked</div>
+                    {isCurrentPicker && <span style={styles.pickingBadge}>Picking</span>}
                   </div>
-                  {isCurrentPicker && <span style={styles.pickingBadge}>Picking</span>}
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
           </div>
 
           {/* Activity feed */}
@@ -368,7 +399,8 @@ export default function DraftRoom() {
               <TeamCard
                 key={team.id}
                 team={team}
-                isMyTurn={isMyTurn && isDraftActive}
+                isMyTurn={canPick}
+                pickLabel={!isMyTurn && isCommissioner ? `PICK FOR ${currentPicker?.name?.toUpperCase()}` : 'PICK'}
                 onPick={makePick}
               />
             ))}
@@ -404,7 +436,7 @@ export default function DraftRoom() {
   );
 }
 
-function TeamCard({ team, isMyTurn, onPick }) {
+function TeamCard({ team, isMyTurn, pickLabel = 'PICK', onPick }) {
   const [hovered, setHovered] = useState(false);
 
   const nextMatchDate = team.next_match_date ? new Date(team.next_match_date) : null;
@@ -443,7 +475,7 @@ function TeamCard({ team, isMyTurn, onPick }) {
         </div>
       )}
       {isMyTurn && (
-        <div style={styles.pickOverlay}>PICK</div>
+        <div style={styles.pickOverlay}>{pickLabel}</div>
       )}
     </div>
   );
