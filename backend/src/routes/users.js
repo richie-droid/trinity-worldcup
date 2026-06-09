@@ -41,12 +41,11 @@ router.get('/:id', async (req, res) => {
   res.json(user);
 });
 
-// Claim commissioner — only works if no commissioner exists yet
+// Transfer commissioner to this user — removes it from whoever currently has it
 router.post('/:id/claim-commissioner', async (req, res) => {
   const client = await pool.connect();
   try {
-    const { rows: [existing] } = await client.query('SELECT id FROM users WHERE is_commissioner = true LIMIT 1');
-    if (existing) return res.status(409).json({ error: 'A commissioner already exists' });
+    await client.query('UPDATE users SET is_commissioner = false WHERE is_commissioner = true');
     const { rows: [user] } = await client.query(
       'UPDATE users SET is_commissioner = true WHERE id = $1 RETURNING *',
       [req.params.id]

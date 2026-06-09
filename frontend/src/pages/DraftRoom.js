@@ -210,7 +210,7 @@ export default function DraftRoom() {
                     <p style={{ ...styles.sidebarText, color: 'rgba(248,248,242,0.5)', fontSize: 12 }}>
                       Waiting for commissioner to start...
                     </p>
-                    {!users.some(u => u.is_commissioner) && (
+                    {!isCommissioner && (
                       <button
                         className="btn-secondary"
                         style={{ width: '100%', fontSize: 13, marginTop: 8 }}
