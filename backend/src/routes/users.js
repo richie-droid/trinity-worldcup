@@ -51,7 +51,6 @@ router.post('/reset', async (req, res) => {
 
     await client.query('DELETE FROM points_log');
     await client.query('DELETE FROM draft_picks');
-    await client.query('DELETE FROM users');
     await client.query(`
       UPDATE draft_state SET
         status = 'waiting', current_pick = 1, total_picks = 0,
