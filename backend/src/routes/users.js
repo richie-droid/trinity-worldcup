@@ -41,6 +41,23 @@ router.get('/:id', async (req, res) => {
   res.json(user);
 });
 
+// Claim commissioner — only works if no commissioner exists yet
+router.post('/:id/claim-commissioner', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { rows: [existing] } = await client.query('SELECT id FROM users WHERE is_commissioner = true LIMIT 1');
+    if (existing) return res.status(409).json({ error: 'A commissioner already exists' });
+    const { rows: [user] } = await client.query(
+      'UPDATE users SET is_commissioner = true WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } finally {
+    client.release();
+  }
+});
+
 // Reset everything — commissioner only
 router.post('/reset', async (req, res) => {
   const { userId } = req.body;

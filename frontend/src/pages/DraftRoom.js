@@ -206,9 +206,26 @@ export default function DraftRoom() {
                     </button>
                   </>
                 ) : (
-                  <p style={{ ...styles.sidebarText, color: 'rgba(248,248,242,0.5)', fontSize: 12 }}>
-                    Waiting for commissioner to start...
-                  </p>
+                  <>
+                    <p style={{ ...styles.sidebarText, color: 'rgba(248,248,242,0.5)', fontSize: 12 }}>
+                      Waiting for commissioner to start...
+                    </p>
+                    {!users.some(u => u.is_commissioner) && (
+                      <button
+                        className="btn-secondary"
+                        style={{ width: '100%', fontSize: 13, marginTop: 8 }}
+                        onClick={async () => {
+                          const updated = await api.claimCommissioner(user.id);
+                          if (updated?.id) {
+                            localStorage.setItem('wc_user', JSON.stringify(updated));
+                            window.location.reload();
+                          }
+                        }}
+                      >
+                        👑 Claim Commissioner
+                      </button>
+                    )}
+                  </>
                 )}
               </>
             )}
