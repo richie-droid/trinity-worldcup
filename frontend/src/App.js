@@ -18,7 +18,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={user ? <Navigate to="/draft" replace /> : <SignUp />} />
       <Route path="/draft" element={<ProtectedRoute><DraftRoom /></ProtectedRoute>} />
-      <Route path="/scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
+      <Route path="/scoreboard" element={<Scoreboard />} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
