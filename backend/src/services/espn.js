@@ -6,7 +6,7 @@ const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.wor
 
 const mapStatus = (espnStatus) => {
   const s = espnStatus?.toLowerCase() || '';
-  if (s.includes('final') || s === 'ft' || s === 'post') return 'final';
+  if (s.includes('final') || s === 'ft' || s === 'post' || s === 'status_full_time' || s === 'full_time') return 'final';
   if (s.includes('in progress') || s === 'in' || s.includes('live')) return 'live';
   if (s === 'pre' || s.includes('scheduled')) return 'scheduled';
   return espnStatus || 'scheduled';

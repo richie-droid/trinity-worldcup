@@ -45,7 +45,7 @@ const recalculateAllPoints = async (pool) => {
   try {
     // Get all finished matches
     const { rows: matches } = await client.query(`
-      SELECT * FROM matches WHERE status IN ('final', 'ft')
+      SELECT * FROM matches WHERE status IN ('final', 'ft', 'STATUS_FULL_TIME')
     `);
 
     // Get all draft picks
