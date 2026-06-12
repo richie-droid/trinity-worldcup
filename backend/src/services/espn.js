@@ -105,7 +105,8 @@ const fetchAndSyncScores = async () => {
       client.release();
     }
 
-    console.log(`Synced ${events.length} matches from ESPN`);
+    const finished = events.filter(e => mapStatus(e.competitions?.[0]?.status?.type?.name) === 'final').length;
+    console.log(`ESPN sync: ${events.length} total events, ${finished} final`);
     return events.length;
   } catch (err) {
     console.error('ESPN sync error:', err.message);

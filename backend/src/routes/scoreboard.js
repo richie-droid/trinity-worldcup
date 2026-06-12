@@ -143,6 +143,14 @@ router.post('/sync', async (req, res) => {
   res.json({ synced: count });
 });
 
+// Force recalculate all points from finished matches
+router.post('/recalculate', async (req, res) => {
+  const { recalculateAllPoints } = require('../services/scoring');
+  const { pool } = require('../db');
+  await recalculateAllPoints(pool);
+  res.json({ ok: true });
+});
+
 // Points breakdown for a user
 router.get('/points/:userId', async (req, res) => {
   const client = await pool.connect();
