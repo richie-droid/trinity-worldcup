@@ -50,8 +50,9 @@ export default function Scoreboard() {
     }
   };
 
+  const isFinished = (s) => ['final', 'ft', 'status_full_time', 'full_time'].includes((s || '').toLowerCase());
   const liveMatches = matches.filter(m => m.status === 'live');
-  const recentMatches = matches.filter(m => m.status === 'final').slice(0, 10);
+  const recentMatches = matches.filter(m => isFinished(m.status)).slice(0, 10);
 
   if (loading) return (
     <div style={styles.loading}>
