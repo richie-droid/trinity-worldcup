@@ -22,7 +22,8 @@ const getRound = (match) => {
 };
 
 const calculateMatchPoints = (match, teamId) => {
-  if (match.status !== 'final' && match.status !== 'ft') return null;
+  const s = (match.status || '').toLowerCase();
+  if (!['final', 'ft', 'status_full_time', 'full_time'].includes(s)) return null;
   if (match.home_score === null || match.away_score === null) return null;
 
   const round = getRound(match);
